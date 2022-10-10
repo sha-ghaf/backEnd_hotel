@@ -1,0 +1,106 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+    provider = "prisma-client-js"
+}
+
+datasource db {
+    provider = "mysql"
+    url      = env("DATABASE_URL")
+}
+
+model Customers {
+    id          Int      @id @default(autoincrement())
+    name        String
+    email       String   @unique
+    phoneNumber String   @unique
+    token       tokens[]
+    checkedIn   Checked_in[]
+    checkedOut   Checked_out[]
+}
+
+model tokens {
+    id         Int          @id @default(autoincrement())
+    customerId Int
+    expiresAt  DateTime
+    customer   Customers    @relation(fields: [customerId], references: [id])
+}
+
+model Admin {
+    id          Int      @id @default(autoincrement())
+    name        String
+    email       String   @unique
+    phoneNumber String   @unique
+    password    String
+    AdminTokens AdminTokens[]
+    checkedIn   Checked_in[]
+    checkedOut   Checked_out[]
+}
+
+model AdminTokens {
+    id         Int          @id @default(autoincrement())
+    adminId Int
+    expiresAt  DateTime
+    Admin      Admin        @relation(fields: [adminId], references: [id])
+}
+
+model Rooms {
+    id          Int      @id @default(autoincrement())
+    type        Typy
+    dayCast     Int
+    description String
+    status      Status
+    checkedIn   Checked_in[]
+    checkedOut   Checked_out[]
+}
+
+enum Typy {
+    single
+    double
+}
+enum Status {
+    Available
+    Reserved
+    Disabled
+}
+
+model Checked_in {
+    id         Int        // @unique @default(autoincrement())
+    customerId Int
+    adminId    Int
+    roomId     Int
+    duration   Int
+    startAt    DateTime
+    endAt      DateTime
+    cost       Int
+    checked    Checked    @default(in)
+    customer   Customers  @relation(fields: [customerId], references: [id])
+    admin      Admin      @relation(fields: [adminId], references: [id])
+    room       Rooms      @relation(fields: [roomId], references: [id])
+    @@id([customerId, adminId, roomId])
+}
+
+enum Checked {
+    in
+    out
+}
+
+model Checked_out {
+    id         Int        // @unique @default(autoincrement())
+    customerId Int
+    adminId    Int
+    roomId     Int
+    feedback   String
+    duration   Int
+    startAt    DateTime
+    endAt      DateTime
+    cost       Int
+    customer   Customers  @relation(fields: [customerId], references: [id])
+    admin      Admin      @relation(fields: [adminId], references: [id])
+    room       Rooms      @relation(fields: [roomId], references: [id])
+    @@id([customerId, adminId, roomId])
+}
+
+// npx prisma generate 
+// npx prisma migrate dev
